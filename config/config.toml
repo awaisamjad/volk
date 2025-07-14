@@ -1,0 +1,30 @@
+# HTTP Server Configuration
+
+[server]
+port = 8000
+host = "0.0.0.0"
+read_timeout = 30
+write_timeout = 30
+max_connections = 100
+
+[file_server]
+document_root = "./cmd/server"
+default_file = "index.html"
+allow_directory_listing = false
+
+# Custom MIME type mappings
+[file_server.mime_type_overrides]
+".dat" = "application/octet-stream"
+".custom" = "text/plain"
+
+[security]
+allow_directory_traversal = false
+max_request_size = 1048576  # 1MB
+rate_limit = 60  # 60 requests per minute
+allowed_origins = ["*"]
+
+[logging]
+level = "info"  # debug, info, warn, error
+file_path = ""  # Empty for stdout
+format = "text"  # text or json
+access_logs = true
