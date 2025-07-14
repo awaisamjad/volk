@@ -5,11 +5,11 @@ import (
 	"log"
 
 	// "server/internal/
-	"http-server/config"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
+	"volk/config"
 )
 
 // FileServer handles serving files

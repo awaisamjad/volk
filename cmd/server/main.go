@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"http-server/internal/http"
 	"log"
 	"net"
 	"strings"
+	"volk/internal/http"
 	// "flag"
 )
 
