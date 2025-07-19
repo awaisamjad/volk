@@ -28,6 +28,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"volk/config"
+)
+
+var (
+	DefaultFileServer *FileServer
 )
 
 const (
@@ -693,8 +698,16 @@ func (rq *Request) GET() Response {
 		}
 
 	default:
-		fileserver := NewFileServer(FileServerDefaultConfig)
-		return fileserver.ServeFile(rq)
+		if DefaultFileServer != nil {
+			return DefaultFileServer.ServeFile(rq)
+		} else {
+			// Fallback to default config if no file server is configured
+			fileserver := NewFileServer(config.FileServerConfig{
+				DocumentRoot: ".",
+				DefaultFile:  "index.html",
+			})
+			return fileserver.ServeFile(rq)
+		}
 	}
 }
 

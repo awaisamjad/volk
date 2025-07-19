@@ -1,0 +1,24 @@
+[server]
+  port = 6543
+  host = "0.0.0.0"
+  read_timeout = 30
+  write_timeout = 30
+  max_connections = 100
+
+[file_server]
+  document_root = "."
+  default_file = "index.html"
+  allow_directory_listing = false
+  [file_server.mime_type_overrides]
+
+[security]
+  allow_directory_traversal = false
+  max_request_size = 1048576
+  rate_limit = 60
+  allowed_origins = ["*"]
+
+[logging]
+  level = "info"
+  file_path = ""
+  format = "text"
+  access_logs = true

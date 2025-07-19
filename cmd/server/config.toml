@@ -8,7 +8,7 @@ write_timeout = 30
 max_connections = 100
 
 [file_server]
-document_root = "./cmd/server"
+document_root = "."
 default_file = "index.html"
 allow_directory_listing = false
 
