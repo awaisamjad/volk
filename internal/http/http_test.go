@@ -6,59 +6,59 @@ import (
 	"testing"
 )
 
-func TestParseRequest(t *testing.T) {
+func TestparseRequest(t *testing.T) {
 	t.Run("Test Valid GET Request", func(t *testing.T) {
 		requestString := "GET / HTTP/1.1\r\nHost: localhost:8080\r\nContent-Type: application/html\r\n\r\n"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err != nil {
-			t.Errorf("ParseRequest returned an error: %v", err)
+			t.Errorf("parseRequest returned an error: %v", err)
 		}
 	})
 
 	t.Run("Test Invalid GET Request", func(t *testing.T) {
 		requestString := "GET / HTTP/1.1\r\nHost: localhost:8080\r\nContent-Type: application/html\r\n\r\n<h1>Hello World</h1>"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err == nil {
-			t.Errorf("ParseRequest returned an error: %v", err)
+			t.Errorf("parseRequest returned an error: %v", err)
 		}
 	})
 	t.Run("Test Valid POST Request", func(t *testing.T) {
 		requestString := "POST /submit HTTP/1.1\r\nHost: localhost:8080\r\nContent-Type: application/json\r\n\r\n{\"name\": \"John Doe\"}"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err != nil {
-			t.Errorf("ParseRequest returned an error: %v", err)
+			t.Errorf("parseRequest returned an error: %v", err)
 		}
 	})
 
 	t.Run("Test Request with no separator", func(t *testing.T) {
 		requestString := "GET /index.html HTTP/1.1\r\nHost: localhost:8080\r\n"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err == nil {
-			t.Errorf("ParseRequest should have returned an error due to missing separator. Error : %v", err)
+			t.Errorf("parseRequest should have returned an error due to missing separator. Error : %v", err)
 		}
 	})
 
 	t.Run("Test Invalid Method", func(t *testing.T) {
 		requestString := "FOO / HTTP/1.1\r\nHost: localhost:8080\r\n\r\n"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err == nil {
-			t.Errorf("ParseRequest should have returned an error due to invalid method")
+			t.Errorf("parseRequest should have returned an error due to invalid method")
 		}
 	})
 
 	t.Run("Test Invalid Protocol", func(t *testing.T) {
 		requestString := "GET / HTTP/2.0\r\nHost: localhost:8080\r\n\r\n"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err == nil {
-			t.Errorf("ParseRequest should have returned an error due to invalid protocol")
+			t.Errorf("parseRequest should have returned an error due to invalid protocol")
 		}
 	})
 
 	t.Run("Test Invalid Header", func(t *testing.T) {
 		requestString := "GET / HTTP/1.1\r\nHost localhost:8080\r\n\r\n"
-		_, err := ParseRequest(requestString)
+		_, err := parseRequest(requestString)
 		if err == nil {
-			t.Errorf("ParseRequest should have returned an error due to invalid header")
+			t.Errorf("parseRequest should have returned an error due to invalid header")
 		}
 	})
 
@@ -106,49 +106,49 @@ func TestParseHeader(t *testing.T) {
 func TestResponseParsing(t *testing.T) {
 	t.Run("Test Valid HTTP Response", func(t *testing.T) {
 		responseString := "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 22\r\n\r\n<h1>Hello World</h1>"
-		_, err := ParseResponse(responseString)
+		_, err := parseResponse(responseString)
 		if err != nil {
-			t.Errorf("ParseResponse returned an error: %v", err)
+			t.Errorf("parseResponse returned an error: %v", err)
 		}
 	})
 
 	t.Run("Test Response without body", func(t *testing.T) {
 		responseString := "HTTP/1.1 204 No Content\r\nServer: TestServer\r\nDate: Mon, 27 Jul 2022 12:28:53 GMT\r\n\r\n"
-		_, err := ParseResponse(responseString)
+		_, err := parseResponse(responseString)
 		if err != nil {
-			t.Errorf("ParseResponse returned an error: %v", err)
+			t.Errorf("parseResponse returned an error: %v", err)
 		}
 	})
 
 	t.Run("Test Response with missing separator", func(t *testing.T) {
 		responseString := "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 22"
-		_, err := ParseResponse(responseString)
+		_, err := parseResponse(responseString)
 		if err == nil {
-			t.Errorf("ParseResponse should have returned an error due to missing separator")
+			t.Errorf("parseResponse should have returned an error due to missing separator")
 		}
 	})
 
 	t.Run("Test Invalid Protocol", func(t *testing.T) {
 		responseString := "HTTP/2.0 200 OK\r\nContent-Type: text/html\r\n\r\n<h1>Hello World</h1>"
-		_, err := ParseResponse(responseString)
+		_, err := parseResponse(responseString)
 		if err == nil {
-			t.Errorf("ParseResponse should have returned an error due to invalid protocol")
+			t.Errorf("parseResponse should have returned an error due to invalid protocol")
 		}
 	})
 
 	t.Run("Test Invalid Status Code", func(t *testing.T) {
 		responseString := "HTTP/1.1 999 Invalid\r\nContent-Type: text/html\r\n\r\n<h1>Error</h1>"
-		_, err := ParseResponse(responseString)
+		_, err := parseResponse(responseString)
 		if err == nil {
-			t.Errorf("ParseResponse should have returned an error due to invalid status code")
+			t.Errorf("parseResponse should have returned an error due to invalid status code")
 		}
 	})
 
 	t.Run("Test Invalid Header Format", func(t *testing.T) {
 		responseString := "HTTP/1.1 200 OK\r\nContent-Type text/html\r\n\r\n<h1>Hello World</h1>"
-		_, err := ParseResponse(responseString)
+		_, err := parseResponse(responseString)
 		if err == nil {
-			t.Errorf("ParseResponse should have returned an error due to invalid header format")
+			t.Errorf("parseResponse should have returned an error due to invalid header format")
 		}
 	})
 }

@@ -204,6 +204,7 @@ func (r Request) ValidatePath() error {
 	}
 	parsedPath := u.Path
 	cleanedPath := path.Clean(parsedPath)
+	fmt.Println("cleaned path : ", cleanedPath)
 	if cleanedPath != "/" && !strings.HasPrefix(cleanedPath, "/") {
 		return ErrDirectoryTraversal
 	}
@@ -261,26 +262,30 @@ func (r Response) GetBody() string {
 	return r.Body
 }
 
-// Parse a request string
 func NewRequest(request_string string) (Request, error) {
-	request, err := ParseRequest(request_string)
+	request, err := parseRequest(request_string)
 	if err != nil {
 		return Request{}, err
 	}
 	return request, nil
 }
 
-// Parse a response string
 func NewResponse(response_string string) (Response, error) {
-	response, err := ParseResponse(response_string)
+	response, err := parseResponse(response_string)
 	if err != nil {
 		return Response{}, err
 	}
 	return response, nil
 }
 
-// Takes a string request typically from a client and returns a Response
-func ParseRequest(request string) (Request, error) {
+// parseRequest parses a raw HTTP request string into a structured Request object.
+// It extracts the method, request target, protocol, headers, and body from the string.
+//
+// This function is intended for internal use within the http package.
+// Use NewRequest() to create a new Request struct from a raw request string.
+//
+// Returns an error if the request string is malformed or contains invalid data.
+func parseRequest(request string) (Request, error) {
 	// Seperate first by empty line to get startline and headers together and optional body by itself
 	request = strings.Trim(request, " ")
 	request_split := strings.Split(request, HeaderBodySeparator)
@@ -357,7 +362,14 @@ func ParseRequest(request string) (Request, error) {
 	}, nil
 }
 
-func ParseResponse(response string) (Response, error) {
+// parseResponse parses a raw HTTP response string into a structured Response object.
+// It extracts the protocol, status code, headers, and body from the string.
+//
+// This function is intended for internal use within the http package.
+// Use NewResponse() to create a new Response struct from a raw response string.
+//
+// Returns an error if the response string is malformed or contains invalid data.
+func parseResponse(response string) (Response, error) {
 	// Seperate first by empty line to get startline and headers together and optional body by itself
 	response = strings.Trim(response, " ")
 	response_split := strings.Split(response, HeaderBodySeparator)
