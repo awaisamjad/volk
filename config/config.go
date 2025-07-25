@@ -36,7 +36,7 @@ type SecurityConfig struct {
 
 // LogConfig holds logging configuration
 type LogConfig struct {
-	Level      string `toml:"level"`       // plain, verbose
+	Format     string `toml:"format"`      // plain, verbose
 	FilePath   string `toml:"file_path"`   // Path to log file, empty for stdout
 	AccessLogs bool   `toml:"access_logs"` // Enable HTTP access logging
 }
@@ -72,7 +72,7 @@ func DefaultConfig() Config {
 			AllowedOrigins:          []string{"*"},
 		},
 		Logging: LogConfig{
-			Level:      "info",
+			Format:     "plain",
 			FilePath:   "",
 			AccessLogs: true,
 		},
@@ -82,29 +82,32 @@ func DefaultConfig() Config {
 func (c Config) String() string {
 	return fmt.Sprintf(`
 [server]
-  port = %d
-  host = %s
-  read_timeout = %d
-  write_timeout = %d
-  max_connections = %d
+port = %d
+host = %s
+read_timeout = %d
+write_timeout = %d
+max_connections = %d
+
 [file_server]
-  document_root = %s
-  default_file = %s
-  allow_directory_listing = %t
-  mime_type_overrides = %v
+document_root = %s
+default_file = %s
+allow_directory_listing = %t
+mime_type_overrides = %v
+
 [security]
-  allow_directory_traversal = %t
-  max_request_size = %d
-  rate_limit = %d
-  allowed_origins = %v
+allow_directory_traversal = %t
+max_request_size = %d
+rate_limit = %d
+allowed_origins = %v
+
 [logging]
-  level = %s
-  file_path = %s
-  access_logs = %t`,
+format = %s
+file_path = %s
+access_logs = %t`,
 		c.Server.Port, c.Server.Host, c.Server.ReadTimeout, c.Server.WriteTimeout, c.Server.MaxConnections,
 		c.FileServer.DocumentRoot, c.FileServer.DefaultFile, c.FileServer.AllowListing, c.FileServer.MimeTypeOverrides,
 		c.Security.AllowDirectoryTraversal, c.Security.MaxRequestSize, c.Security.RateLimit, c.Security.AllowedOrigins,
-		c.Logging.Level, c.Logging.FilePath, c.Logging.AccessLogs)
+		c.Logging.Format, c.Logging.FilePath, c.Logging.AccessLogs)
 }
 
 // LoadConfig loads configuration from a TOML file

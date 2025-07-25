@@ -4,7 +4,7 @@ import (
     "fmt"
     "os"
 
-    "volk/server/cmd"
+    "volk/volk/cmd"
 )
 
 func main() {

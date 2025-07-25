@@ -1,0 +1,25 @@
+[server]
+port = 8000             # Port the server listens on
+host = "0.0.0.0"        # Host address to bind to
+read_timeout = 30     # Read timeout in seconds
+write_timeout = 30    # Write timeout in seconds
+max_connections = 100   # Maximum number of concurrent connections
+
+[file_server]
+document_root = "."                  # Root directory for serving files
+default_file = "index.html"          # Default file to serve if a directory is requested
+allow_directory_listing = false      # Whether to allow directory listing
+[file_server.mime_type_overrides]
+".dat" = "application/octet-stream"  # Override MIME type for .dat files
+".custom" = "text/plain"            # Override MIME type for .custom files
+
+[security]
+allow_directory_traversal = false # Whether to allow directory traversal (should be false in production)
+max_request_size = 1048576        # Maximum request size in bytes (1MB)
+rate_limit = 60                   # Number of allowed requests per minute
+allowed_origins = ["*"]           # Allowed CORS origins
+
+[logging]
+format = "plain"   # Logging format (plain, verbose)
+file_path = ""     # Path to the log file (empty for stdout)
+access_logs = true # Enable/disable access logs

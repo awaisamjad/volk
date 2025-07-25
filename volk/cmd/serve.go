@@ -61,7 +61,9 @@ func runServer(cmd *cobra.Command, args []string) {
 				for _, path := range ServerConfigPossiblePaths {
 					paths = append(paths, path)
 				}
-				log.Fatalf("Can't locate server file. Provide the path or create one in the following areas : %v, or use --createConfig|-C to create a default one.", paths)
+				log.Fatalf(`Can't locate server file. Provide the path or create one in the following areas : %v, or use --createConfig|-C to create a default one.
+				Example: volk serve -C	
+				`, paths)
 			}
 		}
 	} else {
@@ -116,7 +118,7 @@ func setupLogging(logConfig config.LogConfig) {
 			log.SetOutput(logOutput)
 		}
 	}
-	switch logConfig.Level {
+	switch logConfig.Format{
 	case "plain":
 		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	case "verbose":
