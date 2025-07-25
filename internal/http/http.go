@@ -204,7 +204,6 @@ func (r Request) ValidatePath() error {
 	}
 	parsedPath := u.Path
 	cleanedPath := path.Clean(parsedPath)
-	fmt.Println("cleaned path : ", cleanedPath)
 	if cleanedPath != "/" && !strings.HasPrefix(cleanedPath, "/") {
 		return ErrDirectoryTraversal
 	}

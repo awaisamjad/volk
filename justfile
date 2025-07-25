@@ -14,19 +14,19 @@ GO_BUILD_FLAGS := "-ldflags '-s -w'"
 
 build-linux:
     @echo "Building for Linux (AMD64)..."
-    GOOS=linux GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_linux_amd64 ./cmd/server/{{APP_NAME}}.go
+    GOOS=linux GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_linux_amd64 ./server/cmd/{{APP_NAME}}.go
 
 build-windows:
     @echo "Building for Windows (AMD64)..."
-    GOOS=windows GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_windows_amd64.exe ./cmd/server/{{APP_NAME}}.go
+    GOOS=windows GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_windows_amd64.exe ./server/cmd/{{APP_NAME}}.go
 
 build-macos-amd64:
     @echo "Building for macOS (AMD64)..."
-    GOOS=darwin GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_amd64 ./cmd/server/{{APP_NAME}}.go
+    GOOS=darwin GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_amd64 ./server/cmd/{{APP_NAME}}.go
 
 build-macos-arm64:
     @echo "Building for macOS (ARM64)..."
-    GOOS=darwin GOARCH=arm64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_arm64 ./cmd/server/{{APP_NAME}}.go
+    GOOS=darwin GOARCH=arm64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_arm64 ./server/cmd/{{APP_NAME}}.go
 
 build-all: build-linux build-windows build-macos-amd64 build-macos-arm64
     @echo "All binaries built successfully in '{{BUILD_DIR}}/'"

@@ -81,6 +81,34 @@ func DefaultConfig() Config {
 	}
 }
 
+func (c Config) String() string {
+	return fmt.Sprintf(`
+[server]
+  port = %d
+  host = %s
+  read_timeout = %d
+  write_timeout = %d
+  max_connections = %d
+[file_server]
+  document_root = %s
+  default_file = %s
+  allow_directory_listing = %t
+  mime_type_overrides = %v
+[security]
+  allow_directory_traversal = %t
+  max_request_size = %d
+  rate_limit = %d
+  allowed_origins = %v
+[logging]
+  level = %s
+  file_path = %s
+  access_logs = %t`,
+		c.Server.Port, c.Server.Host, c.Server.ReadTimeout, c.Server.WriteTimeout, c.Server.MaxConnections,
+		c.FileServer.DocumentRoot, c.FileServer.DefaultFile, c.FileServer.AllowListing, c.FileServer.MimeTypeOverrides,
+		c.Security.AllowDirectoryTraversal, c.Security.MaxRequestSize, c.Security.RateLimit, c.Security.AllowedOrigins,
+		c.Logging.Level, c.Logging.FilePath, c.Logging.AccessLogs)
+}
+
 // LoadConfig loads configuration from a TOML file
 func LoadConfig(filePath string) (Config, error) {
 	config := DefaultConfig()

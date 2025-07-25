@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestparseRequest(t *testing.T) {
+func TestParseRequest(t *testing.T) {
 	t.Run("Test Valid GET Request", func(t *testing.T) {
 		requestString := "GET / HTTP/1.1\r\nHost: localhost:8080\r\nContent-Type: application/html\r\n\r\n"
 		_, err := parseRequest(requestString)
