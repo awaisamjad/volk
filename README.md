@@ -25,7 +25,6 @@ Download the latest release for your platform from the [Releases page](https://g
 #### Prerequisites
 
 - Go 1.19 or newer
-- [Just](https://just.systems/man/en/) command runner (optional but recommended)
 
 #### Steps
 
@@ -41,66 +40,75 @@ Download the latest release for your platform from the [Releases page](https://g
     ```bash
     go build
     ```
-
+3. Run:
+    ```bash
+    ./volk
+    ```
 ## Usage
 
-### Basic Usage
+Volk requires a `server.toml` for configuration and will look for a `server.toml` file in the following directories
+- ./ (current directory)
+- /config
+- /etc/volk
 
-By default, Volk will serve files from the current directory and looks for `index.html`.
+To create a default configuration file in the current directory run either 
 
-```bash
-./volk
+```bash 
+volk serve -C
+```
+or
+```bash 
+volk serve --createConfig
 ```
 
-### Using Configuration File
 
-Create a `server.toml` file:
+### Default Configuration File
+
 
 ```toml
-port = 8080
-root = "public"
-index = "index.html"
+# Default Config File
+[server]
+port = 8000             # Port the server listens on
+host = "0.0.0.0"        # Host address to bind to
+read_timeout = 30       # Read timeout in seconds
+write_timeout = 30      # Write timeout in seconds
+max_connections = 100   # Maximum number of concurrent connections
+
+[file_server]
+document_root = "."                  # Root directory for serving files
+default_file = "index.html"          # Default file to serve if a directory is requested
+allow_directory_listing = false      # Whether to allow directory listing
+[file_server.mime_type_overrides]
+".dat" = "application/octet-stream"  # Override MIME type for .dat files
+".custom" = "text/plain"             # Override MIME type for .custom files
+
+[security]
+allow_directory_traversal = false # Whether to allow directory traversal (should be false in production)
+max_request_size = 1048576        # Maximum request size in bytes (1MB)
+rate_limit = 60                   # Number of allowed requests per minute
+allowed_origins = ["*"]           # Allowed CORS origins
+
+[logging]
+format = "plain"   # Logging format (plain, verbose)
+file_path = ""     # Path to the log file (empty for stdout)
+access_logs = true # Enable/disable access logs
 ```
-
-Volk automatically looks for a `server.toml` file so no flags need to given:
-
-```bash
-./volk 
-```
-
-### Configuration Options
-
-| Option  | Description                   | Default      |
-| ------- | ----------------------------- | ------------ |
-| `port`  | Port to listen on             | `8080`       |
-| `root`  | Directory to serve files from | `.`          |
-| `index` | Index file to serve           | `index.html` |
-
 ## Development
 
-### Project Structure
+### Project Structure (changes a lot)
 
 ```
-
 .
 ├── build
+│   ├── server.toml
 │   ├── volk_darwin_amd64
 │   ├── volk_darwin_arm64
 │   ├── volk_linux_amd64
 │   └── volk_windows_amd64.exe
-├── cmd
-│   ├── client
-│   │   └── main.go
-│   └── server
-│       ├── about
-│       │   └── index.html
-│       ├── config-test.toml
-│       ├── config.toml
-│       ├── index.html
-│       ├── server.toml
-│       └── volk.go
 ├── config
-│   └── config.go
+│   ├── config.go
+│   ├── config-test.toml
+│   └── default-config.toml
 ├── go.mod
 ├── go.sum
 ├── internal
@@ -111,8 +119,17 @@ Volk automatically looks for a `server.toml` file so no flags need to given:
 ├── justfile
 ├── main.go
 ├── README.md
-└── test
-    └── main.go
+├── test
+│   └── main.go
+└── volk
+    ├── cmd
+    │   ├── dumpconfig.go
+    │   ├── root.go
+    │   ├── serve.go
+    │   └── version.go
+    ├── index.html
+    ├── main.go
+    └── volk
 ```
 
 ### Testing
@@ -125,9 +142,7 @@ go test ./...
 
 ## Release Process
 
-1. Update version in `justfile`
-2. Build all binaries: `just build-all`
-3. Create a release: `just release VERSION=vX.Y.Z`
+I use `just` as my command runner. Check my commands in the `justfile`
 
 ## License
 
