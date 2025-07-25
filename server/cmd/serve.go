@@ -116,24 +116,27 @@ func setupLogging(logConfig config.LogConfig) {
 			log.SetOutput(logOutput)
 		}
 	}
+	switch logConfig.Level {
+	case "plain":
+		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	case "verbose":
+		log.SetFlags(log.Ldate | log.Ltime | log.Llongfile)
+	}
 
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func handleConnection(conn net.Conn, cfg config.Config) {
 	defer conn.Close()
 
-	// ? apply read timeout from config
 	if cfg.Server.ReadTimeout > 0 {
 		deadline := time.Now().Add(time.Duration(cfg.Server.ReadTimeout) * time.Second)
 		conn.SetReadDeadline(deadline)
 	}
+
 	reader := bufio.NewReader(conn)
-
-	//? build the request into the correct format string
 	var requestBuilder strings.Builder
-
 	startLine, err := reader.ReadString('\n')
+
 	if err != nil {
 		log.Printf("Error reading start line: %v", err)
 		return

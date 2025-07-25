@@ -22,6 +22,6 @@ rate_limit = 60                   # 60 requests per minute
 allowed_origins = ["*"]
 
 [logging]
-level = "info"     # debug, info, warn, error
+level = "plain"    # plain, verbose 
 file_path = ""     # Empty for stdout
 access_logs = true

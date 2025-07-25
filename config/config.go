@@ -36,9 +36,8 @@ type SecurityConfig struct {
 
 // LogConfig holds logging configuration
 type LogConfig struct {
-	Level      string `toml:"level"`       // debug, info, warn, error
+	Level      string `toml:"level"`       // plain, verbose
 	FilePath   string `toml:"file_path"`   // Path to log file, empty for stdout
-	Format     string `toml:"format"`      // text or json
 	AccessLogs bool   `toml:"access_logs"` // Enable HTTP access logging
 }
 
@@ -75,7 +74,6 @@ func DefaultConfig() Config {
 		Logging: LogConfig{
 			Level:      "info",
 			FilePath:   "",
-			Format:     "text",
 			AccessLogs: true,
 		},
 	}
@@ -113,22 +111,22 @@ func (c Config) String() string {
 func LoadConfig(filePath string) (Config, error) {
 	config := DefaultConfig()
 
-	// If file doesn't exist, return default config
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return config, nil
+		return DefaultConfig(), nil
 	}
 
-	// Read and decode the TOML file
 	_, err := toml.DecodeFile(filePath, &config)
 	if err != nil {
 		return config, fmt.Errorf("error decoding config file: %w", err)
 	}
 
-	// Ensure document root is an absolute path
 	if !filepath.IsAbs(config.FileServer.DocumentRoot) {
 		absPath, err := filepath.Abs(config.FileServer.DocumentRoot)
 		if err == nil {
 			config.FileServer.DocumentRoot = absPath
+		} else {
+			return config, fmt.Errorf(`could not determine absolute path for document_root, using default config.
+			error: %w`, err)
 		}
 	}
 

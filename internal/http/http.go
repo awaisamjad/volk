@@ -442,6 +442,7 @@ func parseResponse(response string) (Response, error) {
 	}, nil
 }
 
+// empty values are allowed
 func parseHeader(header string) (Header, error) {
 	var tokenPattern = regexp.MustCompile(`^[!#$%&'*+\.^_` + "`" + `|~0-9a-zA-Z-]+$`)
 	firstColonIdx := strings.Index(header, ":")
@@ -460,49 +461,11 @@ func parseHeader(header string) (Header, error) {
 		return Header{}, fmt.Errorf("invalid header name: '%s'", name)
 	}
 
-	// ? we will allow empty values
-	// if value == "" {
-	// 	return Header{}, fmt.Errorf("invalid header: value is empty for '%s'", name)
-	// }
-
 	return Header{
 		Name:  name,
 		Value: value,
 	}, nil
 }
-
-// func parseHeader(header string) (Header, error) {
-// 	first_colon_idx := strings.Index(header, ":")
-// 	if first_colon_idx == -1 {
-// 		return Header{}, fmt.Errorf("invalid header format: missing colon")
-// 	}
-
-// 	name := header[:first_colon_idx]
-// 	value := header[first_colon_idx+1:]
-// 	name = strings.TrimSpace(name)
-// 	value = strings.TrimSpace(value)
-// 	var tokenPattern = regexp.MustCompile(`^[!#$%&'*+\.^_` + "`" + `|~0-9a-zA-Z-]+$`)
-
-// 	if !tokenPattern.MatchString(name) {
-// 		return Header{}, fmt.Errorf("invalid header name: '%s'", name)
-// 	}
-
-// 	if len(strings.Split(name, " ")) != 1 {
-// 		return Header{}, fmt.Errorf("invalid header format: most likely missing colon after name")
-// 	}
-
-// 	if name == "" {
-// 		return Header{}, fmt.Errorf("invalid header format: header name cannot be empty in '%s'", header)
-// 	}
-// 	if value == "" {
-// 		return Header{}, fmt.Errorf("invalid header format: header value cannot be empty in '%s'", header)
-// 	}
-
-// 	return Header{
-// 		Name:  name,
-// 		Value: value,
-// 	}, nil
-// }
 
 // ?category=electronics&brand=sony&price_max=500
 type Query struct {

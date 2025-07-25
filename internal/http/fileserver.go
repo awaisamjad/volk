@@ -89,10 +89,8 @@ func (fs *FileServer) ServeFile(req *Request) Response {
 		}
 	}
 
-	//? if the path given is a dir then check if it has an index.html which will be served
 	if fileInfo.IsDir() {
 		filePath = filepath.Join(filePath, fs.Config.DefaultFile)
-		log.Println("isDir", filePath)
 		_, err := os.Stat(filePath)
 		if err != nil {
 			log.Println(err)
