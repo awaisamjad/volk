@@ -3,7 +3,6 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/spf13/cobra"
 	"log"
 	"net"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"time"
 	"volk/config"
 	"volk/internal/http"
+
+	"github.com/spf13/cobra"
 )
 
 var serveCmd = &cobra.Command{
@@ -36,7 +37,6 @@ var ServerConfigPossiblePaths = []string{
 }
 
 func runServer(cmd *cobra.Command, args []string) {
-
 	if configPath == "" {
 		found := false
 		for _, path := range ServerConfigPossiblePaths {
@@ -62,7 +62,7 @@ func runServer(cmd *cobra.Command, args []string) {
 					paths = append(paths, path)
 				}
 				log.Fatalf(`Can't locate server file. Provide the path or create one in the following areas : %v, or use --createConfig|-C to create a default one.
-				Example: volk serve -C	
+				Example: volk serve -C
 				`, paths)
 			}
 		}
@@ -98,6 +98,7 @@ func runServer(cmd *cobra.Command, args []string) {
 		}
 		go handleConnection(conn, cfg)
 	}
+
 }
 
 func setupLogging(logConfig config.LogConfig) {
@@ -118,7 +119,7 @@ func setupLogging(logConfig config.LogConfig) {
 			log.SetOutput(logOutput)
 		}
 	}
-	switch logConfig.Format{
+	switch logConfig.Format {
 	case "plain":
 		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	case "verbose":

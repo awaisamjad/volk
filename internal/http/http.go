@@ -17,12 +17,13 @@
 // The package forms the foundation for building both HTTP clients and servers,
 // with particular focus on correctness and security.
 
+// http://[user:password@]host[:port][/path][?query][#fragment]
+
 package http
 
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"path"
 	"regexp"
@@ -100,6 +101,11 @@ type Header struct {
 func (h Header) String() string {
 	return fmt.Sprintf("%s: %s", h.Name, h.Value)
 }
+
+type RequestTarget struct {
+	Path     string
+	Query    string
+	Fragment string
 
 type RequestStartLine struct {
 	Method        Method
@@ -468,10 +474,35 @@ func parseHeader(header string) (Header, error) {
 }
 
 // ?category=electronics&brand=sony&price_max=500
+
+// Query
 type Query struct {
 	Params map[string][]string
 }
 
+// findQuery locates the query in a request target and returns an error if not found.
+// No checks are done on the string to see if it is a valid query. Check parseQuery for query validation
+//
+// Parameters:
+//   - requestTarget string
+//
+// Returns:
+//   - string
+var (
+	ErrQueryNotFound       = errors.New("query not found")
+	ErrFragmentBeforeQuery = errors.New("fragment comes before query")
+	ErrQueryEmpty          = errors.New("query is empty")
+)
+
+// findQuery locates the query in a request target and returns an error if not found.
+// No checks are done on the string to see if it is a valid query. Check parseQuery for query validation
+//
+// Parameters:
+//   - requestTarget string
+//
+// Returns:
+//   - string
+//   - error
 func findQuery(requestTarget string) (string, error) {
 
 	query := ""
@@ -479,8 +510,7 @@ func findQuery(requestTarget string) (string, error) {
 	queryIdx := strings.Index(requestTarget, "?")
 
 	if queryIdx == -1 {
-		log.Println("")
-		return "", errors.New("query not found")
+		return "", ErrQueryNotFound
 	}
 
 	isThereAFragment := false
@@ -489,11 +519,16 @@ func findQuery(requestTarget string) (string, error) {
 		isThereAFragment = true
 	}
 
-	if isThereAFragment && fragmentIdx > queryIdx {
+	if isThereAFragment && fragmentIdx <= queryIdx {
+		//? `/#section1?xxx` is a valid request target as the fragment has a '?' but as we're trying to locate a query this should return an error
+		return "", ErrFragmentBeforeQuery
+	}
+
+	if isThereAFragment && fragmentIdx > queryIdx { // from ? to #
 		for i := queryIdx; i < fragmentIdx; i++ {
 			query += string(requestTarget[i])
 		}
-	} else {
+	} else if !isThereAFragment { // from ? to end of request target
 		for i := queryIdx; i < len(requestTarget); i++ {
 			query += string(requestTarget[i])
 		}
@@ -501,69 +536,74 @@ func findQuery(requestTarget string) (string, error) {
 
 	query = strings.Trim(query, " ")
 	if len(query) == 0 {
-		return "", errors.New("query is empty")
-	}
-
-	if query[0] == '?' {
-		query = query[1:]
-	} else {
-		return "", errors.New("query doesnt start with ?")
+		return "", ErrQueryEmpty
 	}
 
 	return query, nil
 }
 
-// ? parseQuery takes the string given by findQuery() and then parses it. it is not responsible for locating the query in the request-target
-// func parseQuery(query Query) (Query, error) {
+// parseQuery validates a query string and returns as a Query
+//
+// Parameters:
+//   - query string
+//
+// Returns:
+//   - Query
+//   - error
+func parseQuery(query string) (Query, error) {
+	if len(query) > 0 && query[0] == '?' {
+		query = query[1:]
+	}
 
-// 	queryIdx := strings.Index(requestTarget, "?")
-// 	isQueryPresent := false
-// 	if queryIdx != -1 {
-// 		isQueryPresent = true
-// 	}
-// queries := strings.Split(query, "&")
-// params := make(map[string][]string, 0)
-// // Process each query parameter
-// for _, q := range queries {
-// 	if q == "" || !strings.Contains(q, "=") {
-// 		continue // Skip empty or malformed parameters
-// 	}
+	if query == "" {
+		return Query{Params: map[string][]string{}}, nil
+	}
 
-// 	parts := strings.SplitN(q, "=", 2)
-// 	key := parts[0]
-// 	value := ""
+	params := make(map[string][]string)
+	querySplit := strings.Split(query, "&")
 
-// 	if len(parts) > 1 {
-// 		value = parts[1]
-// 	}
+	for _, part := range querySplit {
+		keyValuePair := strings.SplitN(part, "=", 2)
+		key := keyValuePair[0]
+		value := ""
+		if len(keyValuePair) > 1 {
+			value = keyValuePair[1]
+		}
 
-// 	// URL decode the key and value
-// 	decodedKey, err := url.QueryUnescape(key)
-// 	if err != nil {
-// 		return Query{}, fmt.Errorf("invalid query parameter key: %w", err)
-// 	}
+		// Unescape key and value
+		decodedKey, err := url.QueryUnescape(key)
+		if err != nil {
+			return Query{}, fmt.Errorf("invalid percent-encoding in key: %v", err)
+		}
+		decodedValue, err := url.QueryUnescape(value)
+		if err != nil {
+			return Query{}, fmt.Errorf("invalid percent-encoding in value: %v", err)
+		}
 
-// 	decodedValue, err := url.QueryUnescape(value)
-// 	if err != nil {
-// 		return Query{}, fmt.Errorf("invalid query parameter value: %w", err)
-// 	}
+		params[decodedKey] = append(params[decodedKey], decodedValue)
+	}
 
-// 	// Add to params map (support for multiple values with same key)
-// 	params[decodedKey] = append(params[decodedKey], decodedValue)
-// }
-// 	return Query{}, nil
-// }
+	return Query{Params: params}, nil
+}
 
 type Fragment string
 
-// ? Given a request-target findFragment will find the fragment (if any) and return it
+var (
+	ErrFragmentNotFound     = errors.New("fragment not found")
+	ErrFragmentEmpty        = errors.New("fragment cannot be empty")
+	ErrFragmentNoHashPrefix = errors.New("fragment must start with '#'")
+	ErrFragmentWhitespace   = errors.New("fragment cannot contain whitespace")
+)
+
+// findFragment locates the fragment in a request target and returns an error if not found.
+// No checks are done on the string to see if it is a valid fragment. Check parseFragment for fragment validation
 func findFragment(requestTarget string) (Fragment, error) {
 	fragment := ""
 
 	fragmentIdx := strings.Index(requestTarget, "#")
 
 	if fragmentIdx == -1 {
-		return "", errors.New("Fragment not found")
+		return "", ErrFragmentNotFound
 	}
 
 	for i := fragmentIdx; i < len(requestTarget); i++ {
@@ -571,10 +611,6 @@ func findFragment(requestTarget string) (Fragment, error) {
 	}
 
 	fragment = strings.Trim(string(fragment), " ")
-
-	if strings.Contains(fragment, " ") {
-		return "", errors.New("Invalid Fragment : cannot have spaces")
-	}
 
 	return Fragment(fragment), nil
 }
@@ -593,27 +629,83 @@ func findFragment(requestTarget string) (Fragment, error) {
 //   - Fragment: The processed fragment without the '#' prefix
 //   - error: If validation fails, an appropriate error is returned
 func parseFragment(fragment Fragment) (Fragment, error) {
+
 	if fragment == "" {
-		return "", errors.New("fragment cannot be empty")
+		return "", ErrFragmentEmpty
 	}
 
 	if !strings.HasPrefix(string(fragment), "#") {
-		return "", fmt.Errorf("invalid fragment: %s must start with '#'", fragment)
+		return "", ErrFragmentNoHashPrefix
 	}
 
-	if strings.Contains(string(fragment), "\n") {
-		return "", errors.New("fragment cannot contain whitespace")
+	if strings.Contains(string(fragment), "\t") || strings.Contains(string(fragment), "\r") || strings.Contains(string(fragment), "\n") {
+		return "", ErrFragmentWhitespace
 	}
 
-	fragment = fragment[1:]
-	fragment = Fragment(strings.ReplaceAll(string(fragment), " ", "%20"))
-	fragment = Fragment(strings.ReplaceAll(string(fragment), "#", "%23"))
+	content := string(fragment[1:])
+	escaped := url.PathEscape(content)
 
-	return fragment, nil
+	return Fragment(escaped), nil
+}
+
+// FindAndParseFragment combines the functionality of findFragment and parseFragment.
+// It locates the fragment in the request target, validates it, and returns the processed fragment.
+//
+// Parameters:
+//   - requestTarget string: The request target to search for the fragment.
+//
+// Returns:
+//   - Fragment: The processed fragment without the '#' prefix, or an empty string if no fragment is found.
+//   - error: An error if:
+//   - No fragment is found in the request target.
+//   - The fragment is empty.
+//   - The fragment does not start with '#'.
+//   - The fragment contains whitespace.
+func FindAndParseFragment(requestTarget string) (Fragment, error) {
+	fragment, err := findFragment(requestTarget)
+	if err != nil {
+		return "", err
+	}
+
+	return parseFragment(fragment)
+}
+
+// FindAndParseQuery combines the functionality of findQuery and parseQuery.
+// It locates the query in the request target, validates it, and returns the parsed Query struct.
+//
+// Parameters:
+//   - requestTarget string: The request target to search for the query.
+//
+// Returns:
+//   - Query: The parsed Query struct, or an empty Query if no query is found.
+//   - error: An error if:
+//   - No query is found in the request target.
+//   - The query string is invalid.
+func FindAndParseQuery(requestTarget string) (Query, error) {
+	query, err := findQuery(requestTarget)
+	if err != nil {
+		// If no query is found, return an empty Query struct and no error.
+		if errors.Is(err, errors.New("query not found")) {
+			return Query{Params: map[string][]string{}}, nil
+		}
+		return Query{}, err
+	}
+
+	return parseQuery(query)
 }
 
 func parseRequestTarget(requestTarget string) (string, error) {
-	// fragment, err := findFragment(requestTarget)
+
+	fragment, err := FindAndParseFragment(requestTarget)
+	if err != nil && err != ErrFragmentEmpty {
+		return "", err
+	}
+
+	query, err := FindAndParseQuery(requestTarget)
+	if err != nil || err != ErrQueryEmpty || err != ErrQueryNotFound {
+		return "", err
+	}
+
 	return requestTarget, nil
 }
 

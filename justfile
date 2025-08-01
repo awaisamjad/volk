@@ -14,19 +14,18 @@ GO_BUILD_FLAGS := "-ldflags '-s -w'"
 
 build-linux:
     @echo "Building for Linux (AMD64)..."
-    GOOS=linux GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_linux_amd64 ./server/cmd/{{APP_NAME}}.go
+    GOOS=linux GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_linux_amd64 ./volk/main.go
 
 build-windows:
     @echo "Building for Windows (AMD64)..."
-    GOOS=windows GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_windows_amd64.exe ./server/cmd/{{APP_NAME}}.go
-
+    GOOS=windows GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_windows_amd64.exe ./volk/main.go
 build-macos-amd64:
     @echo "Building for macOS (AMD64)..."
-    GOOS=darwin GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_amd64 ./server/cmd/{{APP_NAME}}.go
+    GOOS=darwin GOARCH=amd64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_amd64 ./volk/main.go
 
 build-macos-arm64:
     @echo "Building for macOS (ARM64)..."
-    GOOS=darwin GOARCH=arm64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_arm64 ./server/cmd/{{APP_NAME}}.go
+    GOOS=darwin GOARCH=arm64 go build {{GO_BUILD_FLAGS}} -o {{BUILD_DIR}}/{{APP_NAME}}_darwin_arm64 ./volk/main.go
 
 build-all: build-linux build-windows build-macos-amd64 build-macos-arm64
     @echo "All binaries built successfully in '{{BUILD_DIR}}/'"
@@ -54,6 +53,8 @@ release: build-all
     @echo "GitHub release '{{VERSION}}' created successfully!"
     @echo "Check your repository's releases page on GitHub."
 
+go-wrk:
+    go-wrk -c 2048 -d 10 http://localhost:6543/
 # --- Utility Recipes ---
 
 # Clean up all generated build artifacts

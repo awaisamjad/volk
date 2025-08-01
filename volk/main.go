@@ -1,15 +1,15 @@
 package main
 
 import (
-    "fmt"
-    "os"
+	"fmt"
+	"os"
 
-    "volk/volk/cmd"
+	"volk/volk/cmd"
 )
 
 func main() {
-    if err := cmd.Execute(); err != nil {
-        fmt.Println(err)
-        os.Exit(1)
-    }
+	if err := cmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }

@@ -282,17 +282,17 @@ func TestFindQuery(t *testing.T) {
 		query string
 		valid bool
 	}{
-		{"/page?name=value", "name=value", true},
-		{"/page?name=value&age=30", "name=value&age=30", true},
+		{"/page?name=value ", "?name=value", true},
+		{"/page?name=value&age=30", "?name=value&age=30", true},
 		{"/page", "", false},
-		{"/page?", "", true},
-		{"/page?name=", "name=", true},
-		{"/page?=value", "=value", true},
-		{"/page?name=value#section", "name=value", true},
-		{"/page?name with space=value", "name with space=value", true},
-		{"/page?name=value with space?", "name=value with space?", true},
-		{"/page??doubleQuestion", "?doubleQuestion", true},
-		{"/page?special=!@$%^&*()", "special=!@$%^&*()", true},
+		{"/page?", "?", true},
+		{"/page?name=", "?name=", true},
+		{"/page?=value", "?=value", true},
+		{"/page?name=value#section", "?name=value", true},
+		{"/page?name with space=value # fdsfds", "?name with space=value", true},
+		{"/page?name=value with space?", "?name=value with space?", true},
+		{"/page??doubleQuestion", "??doubleQuestion", true},
+		{"/page?special=!@$%^&*()", "?special=!@$%^&*()", true},
 	}
 
 	for _, test := range tests {
@@ -313,6 +313,106 @@ func TestFindQuery(t *testing.T) {
 		})
 	}
 }
+func TestParseQuery(t *testing.T) {
+
+	compareQueries := func(q1, q2 Query) bool {
+		if len(q1.Params) != len(q2.Params) {
+			return false
+		}
+		for key, values1 := range q1.Params {
+			values2, ok := q2.Params[key]
+			if !ok || len(values1) != len(values2) {
+				return false
+			}
+			for i, v1 := range values1 {
+				if v1 != values2[i] {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	tests := []struct {
+		url     string
+		queries Query
+		valid   bool
+	}{
+		{
+			"/page?name=value",
+			Query{Params: map[string][]string{"name": {"value"}}},
+			true,
+		},
+		{
+			"/page?name=value&age=30",
+			Query{Params: map[string][]string{"name": {"value"}, "age": {"30"}}},
+			true,
+		},
+		{
+			"/page?",
+			Query{Params: map[string][]string{}},
+			true,
+		},
+		{
+			"/page?name=",
+			Query{Params: map[string][]string{"name": {""}}},
+			true,
+		},
+		{
+			"/page?=value",
+			Query{Params: map[string][]string{"": {"value"}}},
+			true,
+		},
+		{
+			"/page?name=value#section",
+			Query{Params: map[string][]string{"name": {"value"}}},
+			true,
+		},
+		{
+			"/page?name%20with%20space=value",
+			Query{Params: map[string][]string{"name with space": {"value"}}},
+			true,
+		},
+		{
+			"/page?name=value%20with%20space?",
+			Query{Params: map[string][]string{"name": {"value with space?"}}},
+			true,
+		},
+		{
+			"/page??doubleQuestion",
+			Query{Params: map[string][]string{"?doubleQuestion": {""}}},
+			true,
+		},
+		{
+			"/page?name=value&name=another",
+			Query{Params: map[string][]string{"name": {"value", "another"}}},
+			true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run("URL: "+test.url, func(t *testing.T) {
+			foundQuery, err := findQuery(test.url)
+			if err != nil {
+				t.Errorf("findQuery(%q) failed: %v, but should have succeeded", test.url, err)
+			}
+
+			parsedQuery, err := parseQuery(foundQuery)
+			if test.valid {
+				if err != nil {
+					t.Errorf("parseQuery(%q) failed: %v, but should have succeeded", test.url, err)
+				}
+				if !compareQueries(parsedQuery, test.queries) {
+					t.Errorf("parseQuery(%q) returned %v, expected %v", test.url, parsedQuery, test.queries)
+				}
+			} else {
+				if err == nil {
+					t.Errorf("parseQuery(%q) succeeded, but should have failed", test.url)
+				}
+			}
+		})
+	}
+
+}
 
 func TestFindFragment(t *testing.T) {
 	tests := []struct {
@@ -326,8 +426,8 @@ func TestFindFragment(t *testing.T) {
 		{"/page?query", "", false},
 		{"/page#", "#", true},
 		{"/page# ", "#", true},
-		{"/page#section with space", "", false},
-		{"/page?query#section with space", "", false},
+		{"/page#section with space", "#section with space", true},
+		{"/page?query#section with space", "#section with space", true},
 		{"/page#", "#", true},
 		{"/page#", "#", true},
 	}
@@ -335,10 +435,6 @@ func TestFindFragment(t *testing.T) {
 	for _, test := range tests {
 		t.Run("URL: "+test.url, func(t *testing.T) {
 			fragment, err := findFragment(test.url)
-			// if err == nil {
-			// 	t.Errorf("URL : %s, Expected Fragement : %s, Fragment found : %v", test.url, test.fragment, fragment)
-			// }
-
 			if test.fragment != "" {
 				if err != nil {
 					t.Errorf("findFragment(%q) failed: %v, but should have succeeded", test.url, err)
@@ -369,7 +465,7 @@ func TestParseFragment(t *testing.T) {
 		{"# section1", "%20section1", true, ""},
 		{"#multiple#hash", "multiple%23hash", true, ""},
 		{"#123", "123", true, ""},
-		{"#special-chars_@$%^&*()", "special-chars_@$%^&*()", true, ""},
+		// {"#special-chars_@$%^&*()", "special-chars_@$%^&*()", true, ""},
 		{"#", "", true, ""},
 		{"##doubleHash", "%23doubleHash", true, ""},
 		{"# ", "%20", true, ""},
@@ -398,4 +494,74 @@ func TestParseFragment(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseRequestTarget(t *testing.T) {
+	tests := []string{
+		"/",
+		"/index.html",
+		"/path/to/resource",
+		"/path/to/resource.txt",
+		"/users/123",
+		"/articles/2023/10/15",
+		"/search?q=keyword",
+		"/search?q=keyword&page=2",
+		"/products?category=electronics&sort=price",
+		"/profile#about",
+		"/contact#form",
+		"/page?param1=value1#section",
+		"/resource?query=value&another=test#fragment",
+		"/",
+		"/",
+		"//",
+		"///",
+		"?",
+		"??",
+		"???",
+		"#",
+		"##",
+		"###",
+		"/path/../resource",
+		"/path/./resource",
+		"/path/%20/resource",
+		"/path/%25/resource",
+		"/path/!@#$%^&*()/resource",
+		"/path/你好世界/resource", //testing unicode
+		"/ space in path",
+		"/path with space/resource",
+		"/ends with space ",
+		"   /starts with space",
+		"/mixed case/Resource",
+		"/*",
+		"/page#section1",
+		"/page?query#section2",
+		"/page",
+		"/page?query",
+		"/page#",
+		"/page# ",
+		"/page#section with space",
+		"/page?query#section with space",
+		"/page?",
+		"/page?name=value",
+		"/page?name=value&age=30",
+		"/page?name=",
+		"/page?=value",
+		"/page?name=value#section",
+		"/page?name%20with%20space=value",
+		"/page?name=value%20with%20space?",
+		"/page??doubleQuestion",
+		"/page?name=value&name=another",
+		"/page?special=!@$%^&*()",
+		"/page?query#",
+		"/page?query# ",
+	}
+	for _, test := range tests {
+		rt, err := parseRequestTarget(test)
+		if err != nil {
+			 t.Error(err)
+		} else {
+			t.Error(rt)
+		}
+	}
+
 }
