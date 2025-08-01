@@ -1,4 +1,4 @@
-module volk
+module github.com/awaisamjad/volk
 
 go 1.24.4
 
