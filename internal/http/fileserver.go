@@ -9,7 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"volk/config"
+	"github.com/awaisamjad/volk/config"
 )
 
 // FileServer handles serving files
@@ -23,7 +23,7 @@ func NewFileServer(config config.FileServerConfig) *FileServer {
 	}
 }
 
-// ServeFile handles file serving based on an request
+// ServeFile handles file serving based on a request
 func (fs *FileServer) ServeFile(req *Request) Response {
 	if req.GetMethod() != GET {
 		return Response{
@@ -56,10 +56,8 @@ func (fs *FileServer) ServeFile(req *Request) Response {
 		}
 	}
 
-	cleanPath := path.Clean(urlPath)
+	cleanPath := path.Clean(urlPath.Path)
 	filePath := filepath.Join(fs.Config.DocumentRoot, cleanPath[1:])
-	// filePath = cleanPath[1:] // Remove leading slash
-	//? check if it exists and is a directory
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {

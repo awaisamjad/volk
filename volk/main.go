@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"volk/volk/cmd"
+	"github.com/awaisamjad/volk/volk/cmd"
 )
 
 func main() {

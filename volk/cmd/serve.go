@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"volk/config"
-	"volk/internal/http"
+	"github.com/awaisamjad/volk/config"
+	"github.com/awaisamjad/volk/internal/http"
 
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ var configPath string
 var createConfig bool
 
 func init() {
-	serveCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "Path to configuration file")
+	serveCmd.PersistentFlags().StringVarP(&configPath, "path", "p", "", "Path to configuration file")
 	serveCmd.PersistentFlags().BoolVarP(&createConfig, "createConfig", "C", false, "Create a default config in the root dir")
 }
 
@@ -61,8 +61,7 @@ func runServer(cmd *cobra.Command, args []string) {
 				for _, path := range ServerConfigPossiblePaths {
 					paths = append(paths, path)
 				}
-				log.Fatalf(`Can't locate server file. Provide the path or create one in the following areas : %v, or use --createConfig|-C to create a default one.
-				Example: volk serve -C
+				log.Fatalf(`Can't locate server file. Provide the path or create one in the following areas : %v, or use --createConfig|-C to create a default one. Example: volk serve -C
 				`, paths)
 			}
 		}

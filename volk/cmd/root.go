@@ -9,14 +9,10 @@ var rootCmd = &cobra.Command{
 	Use:   "volk",
 	Short: "Volk is a lightweight HTTP server",
 	Long:  `Volk is a lightweight HTTP server written in Go, designed to serve static files with minimal configuration.`,
-	// If no subcommand is specified, run the serve command by default
-	Run: func(cmd *cobra.Command, args []string) {
-		runServer(cmd, args)
-	},
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd, serveCmd, dumpConfigCmd)
+	rootCmd.AddCommand(versionCmd, serveCmd, dumpDefaultConfigCmd)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
