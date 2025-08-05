@@ -1,135 +1,129 @@
 # Volk
 
-Volk is a lightweight HTTP server written in Go, designed to serve static files with minimal configuration.
+Volk is a lightweight HTTP server/File Server written in Go, designed to serve static files with minimal configuration.
 
 ## Features
 
 - Simple and fast file server
+- Customizable configuration via TOML files
 - Cross-platform support (Windows, macOS, Linux)
-- Minimal dependencies
-- Configuration via TOML files
-
-## Current Limitations
-
-- Only implements `GET` functionality (Will implement the rest in the future insha'Allah)
-- Not the most performant
+- Minimal external dependencies
+- Command-line interface with simple commands
 
 ## Installation
 
 ### Pre-built Binaries
 
-Download the latest release for your platform from the [Releases page](https://github.com/awais/volk/releases).
+Download the latest release for your platform from the [Releases page](https://github.com/awaisamjad/volk/releases).
 
 ### Building from Source
 
 #### Prerequisites
 
-- Go 1.19 or newer
+- Go 1.24 or newer
 
 #### Steps
 
 1. Clone the repository:
 
-    ```bash
-    git clone https://github.com/awais/volk.git
-    cd /volk/cmd/server
-    ```
+   ```bash
+   git clone https://github.com/awaisamjad/volk.git
+   cd volk
+   ```
 
 2. Build:
 
-    ```bash
-    go build
-    ```
-3. Run:
-    ```bash
-    ./volk
-    ```
+   ```bash
+   go build -o volk ./volk/main.go
+   ```
+
+3. Or use the provided Just commands:
+
+   ```bash
+   just build-all
+   ```
+
 ## Usage
 
-Volk requires a `server.toml` for configuration and will look for a `server.toml` file in the following directories
-- ./ (current directory)
-- /config
-- /etc/volk
+### Quick Start
 
-To create a default configuration file in the current directory run either 
+1. Create an `index.html` file in your project directory
+2. Run `./volk serve` in the same directory
 
-```bash 
-volk serve -C
+By default, Volk will:
+
+- Look for an `index.html` file in the current directory
+- Serve the file on `http://0.0.0.0:6543`
+
+### Configuration
+
+Volk can be configured using a `volk_config.toml` file. You can generate a default configuration file with:
+
+```bash
+./volk dump-config
 ```
-or
-```bash 
-volk serve --createConfig
-```
 
-
-### Default Configuration File
-
+### Default Configuration
 
 ```toml
-# Default Config File
 [server]
-port = 8000             # Port the server listens on
-host = "0.0.0.0"        # Host address to bind to
-read_timeout = 30       # Read timeout in seconds
-write_timeout = 30      # Write timeout in seconds
-max_connections = 100   # Maximum number of concurrent connections
+port = 8000           # Port the server listens on
+read_timeout = 30     # Read timeout in seconds
 
 [file_server]
-document_root = "."                  # Root directory for serving files
-default_file = "index.html"          # Default file to serve if a directory is requested
-allow_directory_listing = false      # Whether to allow directory listing
-[file_server.mime_type_overrides]
-".dat" = "application/octet-stream"  # Override MIME type for .dat files
-".custom" = "text/plain"             # Override MIME type for .custom files
-
-[security]
-allow_directory_traversal = false # Whether to allow directory traversal (should be false in production)
-max_request_size = 1048576        # Maximum request size in bytes (1MB)
-rate_limit = 60                   # Number of allowed requests per minute
-allowed_origins = ["*"]           # Allowed CORS origins
+document_root = "."             # Root directory for serving files
+default_file = "index.html"     # Default file to serve if a directory is requested
 
 [logging]
 format = "plain"   # Logging format (plain, verbose)
 file_path = ""     # Path to the log file (empty for stdout)
 access_logs = true # Enable/disable access logs
 ```
-## Development
 
-### Project Structure (changes a lot)
+## Project Structure
 
 ```
 .
-├── build
-│   ├── server.toml
-│   ├── volk_darwin_amd64
-│   ├── volk_darwin_arm64
-│   ├── volk_linux_amd64
-│   └── volk_windows_amd64.exe
-├── config
-│   ├── config.go
-│   ├── config-test.toml
-│   └── default-config.toml
-├── go.mod
-├── go.sum
-├── internal
-│   └── http
-│       ├── fileserver.go
-│       ├── http.go
-│       └── http_test.go
-├── justfile
-├── main.go
-├── README.md
-├── test
-│   └── main.go
-└── volk
-    ├── cmd
-    │   ├── dumpconfig.go
-    │   ├── root.go
-    │   ├── serve.go
-    │   └── version.go
-    ├── index.html
-    ├── main.go
-    └── volk
+├── build                 # Build outputs
+├── config                # Configuration related code
+│   ├── config.go
+│   └── default-config.toml
+├── internal              # Internal packages
+│   └── http              # HTTP implementation
+│       ├── fileserver.go
+│       ├── request.go
+│       ├── response.go
+│       └── ...
+├── volk                  # Main application code
+│   ├── cmd               # CLI commands
+│   │   ├── dump_default_config.go
+│   │   ├── root.go
+│   │   └── serve.go
+│   └── main.go           # Application entry point
+├── go.mod                # Go module definition
+├── go.sum                # Go module checksums
+├── justfile              # Just commands for building and releasing
+└── README.md             # This file
+```
+
+## Development
+
+### Building for Different Platforms
+
+The project includes a `justfile` with recipes for building binaries for various platforms:
+
+```bash
+# Build for all supported platforms
+just build-all
+
+# Build for specific platforms
+just build-linux
+just build-windows
+just build-macos-amd64
+just build-macos-arm64
+
+# Clean build artifacts
+just clean
 ```
 
 ### Testing
@@ -142,7 +136,15 @@ go test ./...
 
 ## Release Process
 
-I use `just` as my command runner. Check my commands in the `justfile`
+The project uses `just` as a command runner for managing builds and releases.
+
+To create a new release:
+
+```bash
+just release
+```
+
+This will build binaries for all platforms and create a GitHub release using the `gh` CLI.
 
 ## License
 

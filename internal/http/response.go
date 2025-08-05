@@ -14,7 +14,6 @@ type ResponseStartLine struct {
 	StatusText StatusText
 }
 
-// String returns a string representation of the response start line
 func (r ResponseStartLine) String() string {
 	return fmt.Sprintf("%s %d %s", r.Protocol, r.StatusCode, r.StatusText)
 }
@@ -26,7 +25,6 @@ type Response struct {
 	Body      string
 }
 
-// String returns a string representation of the response
 func (r Response) String() string {
 	var builder strings.Builder
 
@@ -78,7 +76,6 @@ func NewResponse(response_string string) (Response, error) {
 
 // parseResponse parses a response string into a Response struct
 func parseResponse(response string) (Response, error) {
-	// Separate first by empty line to get startline and headers together and optional body by itself
 	response = strings.Trim(response, " ")
 	response_split := strings.Split(response, HeaderBodySeparator)
 	if len(response_split) != 2 {
@@ -88,7 +85,6 @@ func parseResponse(response string) (Response, error) {
 	startline_headers := response_split[0]
 	body := response_split[1]
 
-	// Split startline and headers
 	startline_headers_split := strings.Split(startline_headers, CRLF)
 	if len(startline_headers_split) < 1 {
 		return Response{}, fmt.Errorf("invalid response format: no startline")
@@ -97,7 +93,6 @@ func parseResponse(response string) (Response, error) {
 	startline := startline_headers_split[0]
 	headers_strings := startline_headers_split[1:]
 
-	// Parse startline
 	startline_split := strings.Split(startline, " ")
 	if len(startline_split) < 3 {
 		return Response{}, fmt.Errorf("invalid startline format")
@@ -109,10 +104,8 @@ func parseResponse(response string) (Response, error) {
 		return Response{}, fmt.Errorf("invalid status code: %v", err)
 	}
 
-	// Join the rest of the startline as the status text
 	status_text := strings.Join(startline_split[2:], " ")
 
-	// Parse headers
 	headers := []Header{}
 	for _, header_str := range headers_strings {
 		if header_str == "" {

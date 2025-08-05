@@ -22,7 +22,6 @@ type RequestStartLine struct {
 	Protocol      Protocol
 }
 
-// String returns a string representation of the request start line
 func (r RequestStartLine) String() string {
 	return fmt.Sprintf("%s %s %s", r.Method, r.RequestTarget.String(), r.Protocol)
 }
@@ -34,7 +33,6 @@ type Request struct {
 	Body      string
 }
 
-// String returns a string representation of the request
 func (r Request) String() string {
 	var sb strings.Builder
 	sb.WriteString(r.StartLine.String())
@@ -100,15 +98,12 @@ func (r Request) ValidatePath() error {
 		return fmt.Errorf("path must start with /: %s", requestTarget)
 	}
 
-	// Check for directory traversal
 	if strings.Contains(requestTarget, "..") {
 		return ErrDirectoryTraversal
 	}
 
-	// Check for forbidden path segments
-	// todo switch to splitseq if better
-	segments := strings.Split(requestTarget, "/")
-	for _, segment := range segments {
+	segments := strings.SplitSeq(requestTarget, "/")
+	for segment := range segments {
 		if segment == "." || segment == ".." {
 			return ErrForbiddenPathSegment
 		}
@@ -126,7 +121,6 @@ func (r Request) ValidatePath() error {
 
 // parseRequest parses a request string into a Request struct
 func parseRequest(request string) (Request, error) {
-	// Separate first by empty line to get startline and headers together and optional body by itself
 	request = strings.Trim(request, " ")
 	request_split := strings.Split(request, HeaderBodySeparator)
 	if len(request_split) != 2 {
@@ -136,7 +130,6 @@ func parseRequest(request string) (Request, error) {
 	startline_headers := request_split[0]
 	body := request_split[1]
 
-	// Split startline and headers
 	startline_headers_split := strings.Split(startline_headers, CRLF)
 	if len(startline_headers_split) < 1 {
 		return Request{}, fmt.Errorf("invalid request format: no startline")
@@ -145,7 +138,6 @@ func parseRequest(request string) (Request, error) {
 	startline := startline_headers_split[0]
 	headers_strings := startline_headers_split[1:]
 
-	// Parse startline
 	startline_split := strings.Split(startline, " ")
 	if len(startline_split) != 3 {
 		return Request{}, fmt.Errorf("invalid startline format")
@@ -166,7 +158,6 @@ func parseRequest(request string) (Request, error) {
 		Fragment: "",
 	}
 
-	// Try to parse query
 	query, _, err := FindAndParseQuery(request_target_str)
 	if err == nil {
 		request_target.Query = "?" + strings.Join(func() []string {
@@ -184,13 +175,11 @@ func parseRequest(request string) (Request, error) {
 		}(), "&")
 	}
 
-	// Try to parse fragment
 	fragment, _, err := FindAndParseFragment(request_target_str)
 	if err == nil {
 		request_target.Fragment = string(fragment)
 	}
 
-	// Parse headers
 	headers := []Header{}
 	for _, header_str := range headers_strings {
 		if header_str == "" {

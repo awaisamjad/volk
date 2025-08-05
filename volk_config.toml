@@ -1,0 +1,12 @@
+[server]
+port = 6543
+read_timeout = 30
+
+[file_server]
+document_root = "."
+default_file = "index.html"
+
+[logging]
+format = "plain"
+file_path = ""
+access_logs = true

@@ -3,12 +3,11 @@ package http
 import (
 	"fmt"
 	"log"
-
-	// "server/internal/
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
+
 	"github.com/awaisamjad/volk/config"
 )
 
@@ -17,13 +16,16 @@ type FileServer struct {
 	Config config.FileServerConfig
 }
 
+// NewFileServer creates a new FileServer instance.
 func NewFileServer(config config.FileServerConfig) *FileServer {
 	return &FileServer{
 		Config: config,
 	}
 }
 
-// ServeFile handles file serving based on a request
+// ServeFile handles file serving based on a request.
+// It checks the request method, validates the path, and serves the requested file.
+// If the file is not found or the method is not GET, it returns an appropriate error response.
 func (fs *FileServer) ServeFile(req *Request) Response {
 	if req.GetMethod() != GET {
 		return Response{

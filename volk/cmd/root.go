@@ -4,7 +4,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "volk",
 	Short: "Volk is a lightweight HTTP server",
@@ -12,10 +11,9 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd, serveCmd, dumpDefaultConfigCmd)
+	rootCmd.AddCommand(serveCmd, dumpDefaultConfigCmd)
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
 func Execute() error {
 	return rootCmd.Execute()
 }

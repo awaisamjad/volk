@@ -1,7 +1,7 @@
 // Package http implements a simple HTTP server and related utilities.
 //
 // This package provides functionality for parsing HTTP requests, generating HTTP responses,
-// and serving static files. It supports all standard HTTP methods (GET, POST, PUT, etc.)
+// and serving static files. It supports only the GET mehtod
 // and includes utilities for handling headers, query parameters, request paths, and more.
 //
 // The package is organized into multiple files:
@@ -34,7 +34,6 @@ type HTTPMessage interface {
 // DefaultFileServer is the default file server used for serving static files
 var DefaultFileServer *FileServer
 
-// init initializes the HTTP package
 func init() {
 	// Initialize with nil, will be set when the server starts
 	DefaultFileServer = nil

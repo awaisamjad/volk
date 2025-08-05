@@ -18,7 +18,8 @@ func (h Header) String() string {
 	return h.Name + HeaderSeparator + h.Value
 }
 
-// parseHeader parses a header string into a Header struct
+// parseHeader parses a header string into a Header struct.
+// It returns an error if the header is not in the correct format.
 func parseHeader(header string) (Header, error) {
 	var tokenPattern = regexp.MustCompile(`^[!#$%&'*+\.^_` + "`" + `|~0-9a-zA-Z-]+$`)
 	firstColonIdx := strings.Index(header, ":")

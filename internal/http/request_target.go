@@ -12,7 +12,6 @@ type RequestTarget struct {
 	Fragment string
 }
 
-// String returns a string representation of the request target
 func (r RequestTarget) String() string {
 	return fmt.Sprintf("%s%s%s", r.Path, r.Query, r.Fragment)
 }
